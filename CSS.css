@@ -12,7 +12,7 @@ font-size: 16px;
 text-shadow: 5px 7px 6px black;
 text-decoration:underline;
 font-weight: bold;
-margin-left: 120px	
+margin-left: 100%	
 }
 
 legend{
@@ -32,10 +32,8 @@ body{
 background-image: url(https://images.ctfassets.net/nnkxuzam4k38/2SvDjcgyav5C1DOb79JKXl/d3b06db5bb6bdb4ab237f666b5b4980e/compute-ea4c57a4.png);
 }
 .fieldset1{	
-
-margin: 0 auto;
 background-image: url(https://www.freecodecamp.org/news/content/images/size/w2000/2022/09/jonatan-pie-3l3RwQdHRHg-unsplash.jpg);
-width: 15%;
+width: 300px;
 height: auto;
 border-style: double;
 border-color:aliceblue;
@@ -43,7 +41,7 @@ border-radius: 20px
 }
 
 form{
-	
+margin-left: 43%;
 margin-top: 100px;
 }
 
@@ -99,8 +97,16 @@ margin-left: 50px;
 border-bottom: solid #FF0004;
 }
 
+select option {
+background-color: white;
+color: black;
+}
 
 
+
+
+
+s
 button:hover{
 	background-color:#403E3E; 
 }
@@ -115,11 +121,4 @@ button:focus{
 	font-size: 20px;
 }
 
-  select option {
-    background-color: white;
-    color: black;
-  }
-  select:focus {
-    outline: none;
-    background-color: #0D47A1;
-  }
+
