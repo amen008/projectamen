@@ -1,56 +1,685 @@
-<!doctype html>
-<html>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>page</title>
-<link rel="stylesheet" href="CSS.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Certificate – Prof. Asma Fekih</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #f0d080;
+    --gold-dark: #8a6b1e;
+    --deep: #0a0a14;
+    --navy: #0d1b3e;
+    --cream: #fdf6e3;
+    --accent: #1a3a6b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Cormorant Garamond', serif;
+    background: var(--deep);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  
+  .stars {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  }
+  .star {
+    position: absolute;
+    border-radius: 50%;
+    background: white;
+    animation: twinkle var(--dur) ease-in-out infinite;
+    opacity: 0;
+  }
+  @keyframes twinkle {
+    0%,100% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: var(--op); transform: scale(1); }
+  }
+
+  /* ─── GAME SCREEN ─── */
+  #game-screen {
+    position: relative; z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 32px; text-align: center;
+    padding: 20px;
+  }
+
+  .game-title {
+    font-family: 'Source Code Pro', monospace;
+    color: var(--gold-light);
+    font-size: clamp(13px, 2vw, 18px);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:.6} 50%{opacity:1} }
+
+  .game-subtitle {
+    font-family: 'Playfair Display', serif;
+    color: var(--cream);
+    font-size: clamp(24px, 5vw, 48px);
+    line-height: 1.2;
+    max-width: 600px;
+  }
+  .game-subtitle span { color: var(--gold); font-style: italic; }
+
+  /* ─── LOCK CONTAINER ─── */
+  .lock-wrap {
+    position: relative;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+
+  .lock-svg { width: 100px; height: 120px; filter: drop-shadow(0 0 20px var(--gold-dark)); }
+  .lock-svg path, .lock-svg rect, .lock-svg circle {
+    transition: fill 0.5s, stroke 0.5s;
+  }
+  .lock-svg.unlocked { animation: bounce 0.6s ease; filter: drop-shadow(0 0 30px var(--gold)); }
+  @keyframes bounce {
+    0%{transform:scale(1)} 30%{transform:scale(1.3)} 60%{transform:scale(0.9)} 100%{transform:scale(1)}
+  }
+
+  /* ─── CODE INPUTS ─── */
+  .code-label {
+    font-family: 'Source Code Pro', monospace;
+    color: var(--gold);
+    font-size: 13px;
+    letter-spacing: 3px;
+  }
+
+  .code-inputs {
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+  }
+  .code-inputs input {
+    width: 56px; height: 70px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.35);
+    border-radius: 8px;
+    color: var(--gold-light);
+    font-family: 'Source Code Pro', monospace;
+    font-size: 28px; font-weight: 600;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+    caret-color: var(--gold);
+  }
+  .code-inputs input:focus {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.08);
+    box-shadow: 0 0 16px rgba(201,168,76,0.2);
+  }
+  .code-inputs input.error {
+    border-color: #e05252;
+    background: rgba(224,82,82,0.08);
+    animation: shake 0.4s ease;
+  }
+  .code-inputs input.correct { border-color: #52e07e; background: rgba(82,224,126,0.08); }
+
+  @keyframes shake {
+    0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 60%{transform:translateX(8px)}
+  }
+
+  .hint-text {
+    font-family: 'Cormorant Garamond', serif;
+    color: rgba(253,246,227,0.5);
+    font-size: 15px;
+    font-style: italic;
+    max-width: 380px;
+    line-height: 1.6;
+  }
+  .hint-text strong { color: var(--gold); font-style: normal; }
+
+  .unlock-btn {
+    padding: 14px 48px;
+    background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+    border: none; border-radius: 4px;
+    color: var(--deep);
+    font-family: 'Source Code Pro', monospace;
+    font-size: 13px; font-weight: 600;
+    letter-spacing: 3px; text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+    box-shadow: 0 4px 24px rgba(201,168,76,0.3);
+  }
+  .unlock-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(201,168,76,0.45); }
+  .unlock-btn:active { transform: translateY(0); }
+  .unlock-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .error-msg {
+    color: #e05252;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 12px; letter-spacing: 2px;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .error-msg.show { opacity: 1; }
+
+  .attempts-left {
+    font-family: 'Source Code Pro', monospace;
+    color: rgba(201,168,76,0.5);
+    font-size: 11px; letter-spacing: 2px;
+  }
+
+  /* ─── CERTIFICATE ─── */
+  #certificate-screen {
+    display: none;
+    position: relative; z-index: 10;
+    width: min(860px, 95vw);
+    animation: certReveal 1.2s ease forwards;
+  }
+  @keyframes certReveal {
+    0% { opacity: 0; transform: scale(0.85) translateY(30px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .certificate {
+    background: var(--cream);
+    padding: clamp(30px, 5vw, 70px) clamp(24px, 6vw, 80px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Corner ornaments */
+  .cert-corner {
+    position: absolute;
+    width: 80px; height: 80px;
+    border-color: var(--gold);
+    border-style: solid;
+  }
+  .cert-corner.tl { top: 16px; left: 16px; border-width: 2px 0 0 2px; }
+  .cert-corner.tr { top: 16px; right: 16px; border-width: 2px 2px 0 0; }
+  .cert-corner.bl { bottom: 16px; left: 16px; border-width: 0 0 2px 2px; }
+  .cert-corner.br { bottom: 16px; right: 16px; border-width: 0 2px 2px 0; }
+
+  /* Inner border */
+  .cert-border {
+    position: absolute;
+    inset: 28px;
+    border: 1px solid rgba(201,168,76,0.3);
+    pointer-events: none;
+  }
+
+  /* Watermark */
+  .watermark {
+    position: absolute;
+    inset: 0; display: flex; align-items: center; justify-content: center;
+    opacity: 0.04; pointer-events: none;
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(60px, 12vw, 120px);
+    color: var(--gold-dark);
+    transform: rotate(-30deg);
+    white-space: nowrap;
+    letter-spacing: 10px;
+  }
+
+  /* Header band */
+  .cert-header-band {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 6px; margin-bottom: 28px;
+  }
+
+  .cert-institute {
+    font-family: 'Source Code Pro', monospace;
+    font-size: clamp(9px, 1.5vw, 12px);
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .cert-divider {
+    width: 100%;
+    display: flex; align-items: center; gap: 12px;
+    margin: 10px 0;
+  }
+  .cert-divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+  .cert-divider-gem {
+    width: 8px; height: 8px;
+    background: var(--gold);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+  }
+
+  .cert-title-wrap { text-align: center; margin: 16px 0 8px; }
+  .cert-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 6vw, 54px);
+    color: var(--accent);
+    line-height: 1;
+    letter-spacing: 2px;
+  }
+  .cert-title-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(12px, 2vw, 18px);
+    color: var(--gold-dark);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  .cert-presented {
+    text-align: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(13px, 2vw, 17px);
+    color: #555;
+    letter-spacing: 2px;
+    margin: 24px 0 8px;
+  }
+
+  .cert-name {
+    text-align: center;
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(26px, 5vw, 50px);
+    font-style: italic;
+    color: var(--navy);
+    letter-spacing: 1px;
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    padding: 10px 0;
+  }
+  .cert-name::after {
+    content: '';
+    display: block;
+    width: 60%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 8px auto 0;
+  }
+
+  .cert-role {
+    text-align: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(14px, 2.2vw, 20px);
+    color: var(--gold-dark);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin: 4px 0 20px;
+  }
+
+  .cert-body {
+    text-align: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(14px, 2vw, 19px);
+    color: #444;
+    line-height: 1.9;
+    max-width: 600px;
+    margin: 0 auto 28px;
+  }
+  .cert-body em { color: var(--navy); font-style: normal; font-weight: 600; }
+
+  /* Stars row */
+  .cert-stars {
+    text-align: center;
+    color: var(--gold);
+    font-size: 20px;
+    letter-spacing: 8px;
+    margin: 0 0 24px;
+  }
+
+  /* Signatures */
+  .cert-sigs {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 30px;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .cert-sig {
+    text-align: center;
+    flex: 1; min-width: 140px;
+  }
+  .cert-sig-name {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(14px, 2vw, 19px);
+    font-style: italic;
+    color: var(--navy);
+    border-top: 1px solid var(--gold);
+    padding-top: 8px;
+    margin-bottom: 4px;
+  }
+  .cert-sig-role {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 10px;
+    color: var(--gold-dark);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .cert-year {
+    text-align: center;
+    font-family: 'Source Code Pro', monospace;
+    font-size: clamp(10px, 1.5vw, 13px);
+    color: var(--gold-dark);
+    letter-spacing: 3px;
+    border: 1px solid rgba(201,168,76,0.4);
+    padding: 6px 18px;
+    display: inline-block;
+  }
+
+  /* Seal */
+  .cert-seal {
+    position: absolute;
+    bottom: 50px; right: 60px;
+    width: 90px; height: 90px;
+    opacity: 0.85;
+  }
+
+  /* ─── FIREWORKS ─── */
+  .firework {
+    position: fixed;
+    pointer-events: none;
+    z-index: 100;
+  }
+  .spark {
+    position: absolute;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    animation: spark-fly var(--dur) ease-out forwards;
+  }
+  @keyframes spark-fly {
+    0% { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+  }
+
+  /* ─── PRINT ─── */
+  .print-btn {
+    display: block;
+    margin: 18px auto 0;
+    padding: 10px 32px;
+    background: transparent;
+    border: 1px solid rgba(201,168,76,0.5);
+    border-radius: 4px;
+    color: var(--gold-light);
+    font-family: 'Source Code Pro', monospace;
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .print-btn:hover { background: rgba(201,168,76,0.12); border-color: var(--gold); }
+
+  @media print {
+    body { background: white; }
+    #game-screen { display: none !important; }
+    #certificate-screen { display: block !important; }
+    .print-btn { display: none; }
+    .stars { display: none; }
+  }
+</style>
 </head>
-
-		
 <body>
-	<p id="ti2">hello to my site web</p>
-	
-	<form class="form1">
-	<fieldset class="fieldset1">
-	  <legend>
-		  <h3>Information Personel</h3></legend>
-	<div id="fr">	
-	<label for="nom" id="nom">Nom</label>
-		<input type="text" class="n">
-		
-		
-		
-	<label >Age</label>
-		<input type="text" class="n">
-		
-	
-	<label>Email</label><input type="email" class="n">
-		
-	<label>modepass</label><input type="password" class="n">
-	
-			
-	<select>
-	<option class="fe" value="femme">Femme</option>
-	<option class="ho" value="homme">Homme</option>	
-	</select>		
-	
 
-	</div>	
-		
-		
-	<div id="bu">
-	  <button class="envoyer">Envoyer</button>
-	  <button class="reset">Reset</button>
-	  
-	</div>
-	</fieldset><br>
+<!-- Starfield -->
+<div class="stars" id="stars"></div>
 
-		
-		
-		
-	</form>
+<!-- ══════════════════ GAME SCREEN ══════════════════ -->
+<div id="game-screen">
 
+  <div class="game-title">🔐 Sealed with Gratitude</div>
+
+  <div class="game-subtitle">
+    A special certificate awaits<br>
+    <span>Prof. Asma Fekih</span>
+  </div>
+
+  <!-- Lock SVG -->
+  <div class="lock-wrap">
+    <svg class="lock-svg" id="lock-icon" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- shackle -->
+      <path id="shackle" d="M30 50 V36 Q30 10 50 10 Q70 10 70 36 V50" stroke="#c9a84c" stroke-width="7" stroke-linecap="round" fill="none"/>
+      <!-- body -->
+      <rect id="lock-body" x="14" y="48" width="72" height="58" rx="8" fill="#1a3a6b" stroke="#c9a84c" stroke-width="2"/>
+      <!-- keyhole -->
+      <circle cx="50" cy="74" r="8" fill="#c9a84c" opacity="0.9"/>
+      <rect x="46" y="78" width="8" height="14" rx="3" fill="#c9a84c" opacity="0.9"/>
+    </svg>
+  </div>
+
+  <!-- Code entry -->
+  <div>
+    <div class="code-label">Enter the secret code</div>
+    <br>
+    <div class="code-inputs" id="code-inputs">
+      <input type="text" maxlength="1" class="code-box" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+      <input type="text" maxlength="1" class="code-box" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+      <input type="text" maxlength="1" class="code-box" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+      <input type="text" maxlength="1" class="code-box" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+    </div>
+    <br>
+    <p class="hint-text">
+      💡 Hint: The code is the year of your <strong>academic year</strong> — when did <em>2ème Info 2</em> begin? <strong>(2026)</strong>
+    </p>
+  </div>
+
+  <div>
+    <div class="error-msg" id="error-msg">✗ &nbsp; Incorrect code — try again</div>
+    <br>
+    <button class="unlock-btn" id="unlock-btn" onclick="tryUnlock()">Unlock Certificate</button>
+    <br><br>
+    <div class="attempts-left" id="attempts-left">3 attempts remaining</div>
+  </div>
+
+</div>
+
+<!-- ══════════════════ CERTIFICATE SCREEN ══════════════════ -->
+<div id="certificate-screen">
+  <div class="certificate">
+
+    <!-- Decorative corners -->
+    <div class="cert-corner tl"></div>
+    <div class="cert-corner tr"></div>
+    <div class="cert-corner bl"></div>
+    <div class="cert-corner br"></div>
+    <div class="cert-border"></div>
+    <div class="watermark">EXCELLENCE</div>
+
+    <!-- Seal SVG (bottom right) -->
+    <svg class="cert-seal" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="50,5 61,35 95,35 68,57 79,91 50,70 21,91 32,57 5,35 39,35" fill="none" stroke="#c9a84c" stroke-width="2"/>
+      <circle cx="50" cy="50" r="28" fill="none" stroke="#c9a84c" stroke-width="1.5"/>
+      <text x="50" y="47" text-anchor="middle" font-family="serif" font-size="7" fill="#8a6b1e" letter-spacing="1">ACADEMIC</text>
+      <text x="50" y="57" text-anchor="middle" font-family="serif" font-size="7" fill="#8a6b1e" letter-spacing="1">EXCELLENCE</text>
+    </svg>
+
+    <!-- Header -->
+    <div class="cert-header-band">
+      <div class="cert-institute">Ras Al-Jabal Institute &nbsp;·&nbsp; 2ème Info 2 B</div>
+      <div class="cert-divider">
+        <div class="cert-divider-line"></div>
+        <div class="cert-divider-gem"></div>
+        <div class="cert-divider-line"></div>
+      </div>
+    </div>
+
+    <!-- Title -->
+    <div class="cert-title-wrap">
+      <div class="cert-title">Certificate</div>
+      <div class="cert-title-sub">of Gratitude &amp; Appreciation</div>
+    </div>
+
+    <div class="cert-divider" style="margin:18px 0;">
+      <div class="cert-divider-line"></div>
+      <div class="cert-divider-gem"></div>
+      <div class="cert-divider-gem" style="margin:0 4px;"></div>
+      <div class="cert-divider-gem"></div>
+      <div class="cert-divider-line"></div>
+    </div>
+
+    <!-- Presented to -->
+    <div class="cert-presented">This certificate is presented with deepest appreciation to</div>
+    <div class="cert-name">Professor Asma Fekih</div>
+    <div class="cert-role">informatique Teacher</div>
+
+    <!-- Body -->
+    <div class="cert-body">
+      In sincere recognition of your <em>exceptional dedication</em>, inspiring guidance,
+      and unwavering commitment to nurturing the minds of your students throughout
+      the academic year <em>2025 – 2026</em>.<br><br>
+      Your passion for <em>informatique</em> has left a lasting impression on every student
+      fortunate enough to learn under your care at <em>Ras Al-Jabal Institute</em>.
+    </div>
+
+    <div class="cert-stars">★ ★ ★ ★ ★</div>
+
+    <!-- Signatures -->
+    <div class="cert-sigs">
+      <div class="cert-sig">
+        <div class="cert-sig-name">Amen Allah Loukil</div>
+        <div class="cert-sig-role">Student · 2ème Info 2 B</div>
+      </div>
+
+      <div style="text-align:center; flex:1; display:flex; flex-direction:column; align-items:center; gap:8px;">
+        <div class="cert-year">2025 — 2026</div>
+      </div>
+
+      <div class="cert-sig">
+        <div class="cert-sig-name">Ras Al-Jabal Institute</div>
+        <div class="cert-sig-role">Academic Institution</div>
+      </div>
+    </div>
+
+  </div>
+
+  <button class="print-btn" onclick="window.print()">🖨 Print Certificate</button>
+</div>
+
+<script>
+  /* ── Stars ── */
+  const starsEl = document.getElementById('stars');
+  for (let i = 0; i < 120; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2.5 + 0.5;
+    s.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%; top:${Math.random()*100}%;
+      --dur:${(Math.random()*4+2).toFixed(1)}s;
+      --op:${(Math.random()*0.7+0.2).toFixed(2)};
+      animation-delay:${(Math.random()*5).toFixed(1)}s;
+    `;
+    starsEl.appendChild(s);
+  }
+
+  /* ── Code inputs auto-advance ── */
+  const boxes = document.querySelectorAll('.code-box');
+  boxes.forEach((box, i) => {
+    box.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !box.value && i > 0) boxes[i-1].focus();
+    });
+    box.addEventListener('input', () => {
+      box.value = box.value.replace(/[^0-9]/g, '').slice(0,1);
+      if (box.value && i < boxes.length - 1) boxes[i+1].focus();
+      clearErrors();
+    });
+  });
+
+  function clearErrors() {
+    boxes.forEach(b => { b.classList.remove('error'); b.classList.remove('correct'); });
+    document.getElementById('error-msg').classList.remove('show');
+  }
+
+  
+  const SECRET = '2026';
+  let attempts = 3;
+
+  function tryUnlock() {
+    const entered = [...boxes].map(b => b.value).join('');
+    if (entered.length < 4) {
+      shakeAll(); return;
+    }
+    if (entered === SECRET) {
+      boxes.forEach(b => b.classList.add('correct'));
+      unlockAnimation();
+    } else {
+      attempts--;
+      document.getElementById('attempts-left').textContent =
+        attempts > 0 ? `${attempts} attempt${attempts>1?'s':''} remaining` : 'No attempts left — hint: 2026';
+      shakeAll();
+      document.getElementById('error-msg').classList.add('show');
+      if (attempts <= 0) {
+        document.getElementById('unlock-btn').disabled = true;
+        // Auto-fill hint after a pause
+        setTimeout(() => {
+          '2026'.split('').forEach((d,i) => boxes[i].value = d);
+          document.getElementById('unlock-btn').disabled = false;
+          clearErrors();
+        }, 2000);
+      }
+    }
+  }
+
+  function shakeAll() {
+    boxes.forEach(b => {
+      b.classList.remove('error');
+      void b.offsetWidth;
+      b.classList.add('error');
+    });
+  }
+
+  function unlockAnimation() {
+    const lock = document.getElementById('lock-icon');
+    const shackle = document.getElementById('shackle');
+    // Animate shackle up
+    shackle.style.transition = 'transform 0.5s ease';
+    shackle.style.transform = 'translateY(-18px)';
+    lock.classList.add('unlocked');
+
+    setTimeout(() => {
+      // Show certificate
+      document.getElementById('game-screen').style.display = 'none';
+      document.getElementById('certificate-screen').style.display = 'block';
+      launchFireworks();
+    }, 900);
+  }
+
+  /* ── Fireworks ── */
+  function launchFireworks() {
+    const colors = ['#c9a84c','#f0d080','#fff','#e8c55e','#fffbe6','#ffd700'];
+    let count = 0;
+    const interval = setInterval(() => {
+      if (count++ > 8) clearInterval(interval);
+      spawnFirework(
+        Math.random() * window.innerWidth,
+        Math.random() * window.innerHeight * 0.7,
+        colors
+      );
+    }, 300);
+  }
+
+  function spawnFirework(x, y, colors) {
+    const fw = document.createElement('div');
+    fw.className = 'firework';
+    fw.style.left = x + 'px';
+    fw.style.top = y + 'px';
+    document.body.appendChild(fw);
+
+    const sparks = 20 + Math.floor(Math.random()*12);
+    for (let i = 0; i < sparks; i++) {
+      const spark = document.createElement('div');
+      spark.className = 'spark';
+      const angle = (i / sparks) * 360;
+      const dist = 60 + Math.random() * 80;
+      const rad = angle * Math.PI / 180;
+      spark.style.cssText = `
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        --tx:${(Math.cos(rad)*dist).toFixed(1)}px;
+        --ty:${(Math.sin(rad)*dist).toFixed(1)}px;
+        --dur:${(0.6+Math.random()*0.5).toFixed(2)}s;
+        width:${Math.random()*3+2}px; height:${Math.random()*3+2}px;
+        animation-delay:${(Math.random()*0.1).toFixed(2)}s;
+      `;
+      fw.appendChild(spark);
+    }
+    setTimeout(() => fw.remove(), 1500);
+  }
+</script>
 </body>
-	
 </html>
